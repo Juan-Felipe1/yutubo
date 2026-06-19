@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#FAFAFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0F172A;-webkit-font-smoothing:antialiased}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+input::placeholder{color:#A1A1AA}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#D4D4D8;border-radius:8px}
+</style>
+</helmet>
+<main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:56px 20px 48px;--accent:{{ accent }}">
+  <div style="width:100%;max-width:660px">
+
+    <header style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:30px;text-align:center">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center">
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);clip-path:polygon(14% 5%,14% 95%,93% 50%)"></div>
+          <span style="position:relative;margin-left:-5px;color:#fff;font-size:14px;font-weight:800;line-height:1">↓</span>
+        </div>
+        <span style="font-size:19px;font-weight:700;letter-spacing:-.02em">Yutubo</span>
+      </div>
+      <p style="font-size:15px;color:#71717A;max-width:380px;line-height:1.5">Descarga videos fácilmente — video, audio y playlists completas.</p>
+    </header>
+
+    <sc-if value="{{ showPlatforms }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp .25s ease">
+        <p style="text-align:center;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#A1A1AA;margin-bottom:16px">Elige una plataforma</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px">
+          <sc-for list="{{ platforms }}" as="p" hint-placeholder-count="4">
+            <button onClick="{{ p.onClick }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#fff;border:1px solid #ECECEC;border-radius:18px;padding:32px 16px;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:transform .14s,box-shadow .14s,border-color .14s" style-hover="transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.09);border-color:#E0E0E0">
+              <div style="width:62px;height:62px;border-radius:18px;background:{{ p.color }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:27px;font-weight:700;line-height:1">{{ p.letter }}</div>
+              <span style="font-size:16px;font-weight:600;color:#0F172A">{{ p.name }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showDownload }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:fadeUp .25s ease;background:#fff;border:1px solid #ECECEC;border-radius:18px;padding:26px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #F0F0F0;padding-bottom:16px;margin-bottom:22px">
+        <button onClick="{{ goBack }}" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:14px;color:#71717A;font-family:inherit;padding:2px 0" style-hover="color:#0F172A"><span style="font-size:16px;line-height:1">←</span>Plataformas</button>
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#0F172A">
+          <span style="width:9px;height:9px;border-radius:50%;background:var(--accent,#4F46E5);display:inline-block"></span>{{ selectedPlatform.name }}
+        </div>
+      </div>
+
+      <label style="display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#A1A1AA;margin-bottom:9px">Enlace de YouTube</label>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <input value="{{ url }}" onInput="{{ onUrlInput }}" onKeyDown="{{ onKey }}" placeholder="https://www.youtube.com/watch?v=…" style="flex:1;min-width:220px;height:48px;border:1px solid #E4E4E7;border-radius:11px;padding:0 15px;font-size:15px;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .12s,box-shadow .12s" style-focus="border-color:var(--accent,#4F46E5);box-shadow:0 0 0 3px rgba(79,70,229,.16)" />
+        <button onClick="{{ onPaste }}" style="background:#fff;border:1px solid #E4E4E7;color:#3F3F46;padding:0 16px;height:48px;border-radius:11px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit" style-hover="background:#FAFAFA;border-color:#D4D4D8">Pegar</button>
+        <button onClick="{{ onAnalyze }}" style="background:#0F172A;color:#fff;border:none;padding:0 22px;height:48px;border-radius:11px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit" style-hover="background:#27272A">{{ analyzeLabel }}</button>
+      </div>
+
+      <sc-if value="{{ isInvalid }}" hint-placeholder-val="{{ false }}">
+        <p style="margin-top:11px;font-size:13.5px;color:#DC2626;display:flex;align-items:center;gap:6px">Ingresa un enlace válido de YouTube (video o playlist).</p>
+      </sc-if>
+
+      <sc-if value="{{ showResult }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fadeUp .25s ease;margin-top:24px;border-top:1px solid #F0F0F0;padding-top:24px">
+
+          <sc-if value="{{ showVideo }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:16px">
+              <div style="width:168px;height:94px;border-radius:10px;flex:none;background:repeating-linear-gradient(135deg,#F4F4F5 0,#F4F4F5 7px,#ECECEE 7px,#ECECEE 14px);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center">
+                  <div style="width:0;height:0;border-left:11px solid var(--accent,#4F46E5);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px"></div>
+                </div>
+                <span style="position:absolute;top:7px;left:8px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#B4B4BB">miniatura</span>
+                <span style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.78);color:#fff;font-size:11px;padding:2px 5px;border-radius:4px;font-variant-numeric:tabular-nums">{{ video.duration }}</span>
+              </div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px">
+                <div style="font-size:16px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ video.title }}</div>
+                <div style="font-size:14px;color:#71717A">{{ video.channel }}</div>
+                <div style="font-size:13px;color:#A1A1AA">{{ video.meta }}</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showPlaylist }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px">
+                <div style="min-width:0">
+                  <div style="font-size:17px;font-weight:600;line-height:1.3">{{ playlist.title }}</div>
+                  <div style="font-size:14px;color:#71717A;margin-top:3px">{{ playlist.channel }} · {{ playlist.count }} videos</div>
+                </div>
+                <button onClick="{{ toggleAll }}" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;font-size:13.5px;color:#3F3F46;font-family:inherit;white-space:nowrap;padding:4px 0">
+                  <span style="{{ selectAllBoxStyle }}">✓</span>{{ selectAllLabel }}
+                </button>
+              </div>
+              <div style="border:1px solid #F0F0F0;border-radius:12px;max-height:268px;overflow-y:auto">
+                <sc-for list="{{ items }}" as="it" hint-placeholder-count="6">
+                  <div onClick="{{ it.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:10px 13px;cursor:pointer;border-bottom:1px solid #F4F4F5" style-hover="background:#FAFAFA">
+                    <span style="{{ it.boxStyle }}">✓</span>
+                    <div style="width:78px;height:46px;border-radius:6px;flex:none;background:repeating-linear-gradient(135deg,#F4F4F5 0,#F4F4F5 6px,#ECECEE 6px,#ECECEE 12px);position:relative;overflow:hidden">
+                      <span style="position:absolute;bottom:3px;right:4px;background:rgba(0,0,0,.78);color:#fff;font-size:10px;padding:1px 4px;border-radius:3px;font-variant-numeric:tabular-nums">{{ it.duration }}</span>
+                    </div>
+                    <div style="flex:1;min-width:0;font-size:14px;color:#27272A;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">{{ it.title }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="margin-top:22px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;gap:28px;flex-wrap:wrap">
+              <div style="flex:1;min-width:160px">
+                <label style="display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#A1A1AA;margin-bottom:9px">Formato</label>
+                <div style="display:flex;gap:4px;background:#F1F1F2;border-radius:11px;padding:4px">
+                  <button onClick="{{ setMp4 }}" style="{{ mp4Style }}"><div style="font-size:14px;font-weight:600">MP4</div><div style="font-size:11px;opacity:.6">Video</div></button>
+                  <button onClick="{{ setMp3 }}" style="{{ mp3Style }}"><div style="font-size:14px;font-weight:600">MP3</div><div style="font-size:11px;opacity:.6">Audio</div></button>
+                </div>
+              </div>
+              <div style="flex:2;min-width:200px">
+                <label style="display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#A1A1AA;margin-bottom:9px">Calidad</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ qualityOptions }}" as="q" hint-placeholder-count="4">
+                    <button onClick="{{ q.onClick }}" style="{{ q.style }}">{{ q.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <sc-if value="{{ showDownloadBtn }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <div style="font-size:13px;color:#A1A1AA;text-align:center">{{ summaryLine }}</div>
+                <button onClick="{{ onDownload }}" style="{{ downloadBtnStyle }}" style-hover="filter:brightness(1.08)"><span style="font-size:17px;line-height:1">↓</span>{{ downloadBtnLabel }}</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ downloading }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;color:#71717A;margin-bottom:8px">
+                  <span style="display:flex;align-items:center;gap:8px"><span style="width:13px;height:13px;border:2px solid #E4E4E7;border-top-color:var(--accent,#4F46E5);border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>Descargando…</span>
+                  <span style="font-variant-numeric:tabular-nums;font-weight:600;color:#0F172A">{{ progressStr }}</span>
+                </div>
+                <div style="height:8px;background:#EFEFEF;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ progressStr }};background:var(--accent,#4F46E5);border-radius:999px;transition:width .12s linear"></div></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:13px;background:#F0FDF4;border:1px solid #DCFCE7;border-radius:12px;padding:14px 16px">
+                <div style="width:28px;height:28px;border-radius:50%;flex:none;background:#10B981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px">✓</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:14.5px;font-weight:600;color:#15803D">¡Descarga completa!</div>
+                  <div style="font-size:13px;color:#4D7C5A">{{ summaryLine }}</div>
+                </div>
+                <button onClick="{{ onReset }}" style="background:#fff;border:1px solid #BBF7D0;color:#15803D;padding:8px 14px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit" style-hover="background:#F0FDF4">Otro enlace</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <p style="text-align:center;font-size:12.5px;color:#B4B4BB;margin-top:20px;line-height:1.5">Usa el contenido respetando los derechos de autor y los términos de cada plataforma.</p>
+  </div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:760},&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#4F46E5&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;defaultFormat&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;mp4&quot;,&quot;mp3&quot;],&quot;default&quot;:&quot;mp4&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = {
+    step: 'platform',
+    platform: 'youtube',
+    selectedPlatform: { name: 'YouTube', color: '#E5342A' },
+    url: '',
+    status: 'idle',
+    contentType: null,
+    format: 'mp4',
+    quality: '1080p',
+    items: [],
+    video: null,
+    playlist: null,
+    cookiesId: null,
+    downloadId: null,
+    downloading: false,
+    progress: 0,
+    done: false,
+  };
+
+  MP4_Q = ['2160p', '1440p', '1080p', '720p', '480p', '360p'];
+  MP3_Q = ['320 kbps', '256 kbps', '192 kbps', '128 kbps'];
+
+  componentDidMount() {
+    const f = this.props.defaultFormat;
+    if (f && f !== this.state.format) this.setFormat(f);
+  }
+
+  componentWillUnmount() {
+    this._closeProgress();
+    clearTimeout(this._t);
+  }
+
+  noop = () => {};
+
+  platformList = [
+    { id: 'youtube', name: 'YouTube', color: '#E5342A', letter: '▶' },
+    { id: 'facebook', name: 'Facebook', color: '#1877F2', letter: 'f' },
+    { id: 'instagram', name: 'Instagram', color: '#D6326D', letter: '◎' },
+    { id: 'tiktok', name: 'TikTok', color: '#111111', letter: '♪' },
+  ];
+
+  selectPlatform = (p) => {
+    this.setState({
+      step: 'download',
+      platform: p.id,
+      selectedPlatform: { name: p.name, color: p.color },
+      url: '',
+      status: 'idle',
+      contentType: null,
+      done: false,
+      downloading: false,
+    });
+  };
+
+  goBack = () => {
+    this._closeProgress();
+    clearTimeout(this._t);
+    this.setState({ step: 'platform', url: '', status: 'idle', contentType: null, done: false, downloading: false, progress: 0, items: [], video: null, playlist: null });
+  };
+
+  onUrlInput = (e) => {
+    this.setState({ url: e.target.value, status: 'idle', contentType: null, done: false, downloading: false });
+  };
+
+  onKey = (e) => {
+    if (e.key === 'Enter') this.validate();
+  };
+
+  pasteClip = async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      if (t) this.setState({ url: t, status: 'idle', contentType: null, done: false });
+    } catch (e) {}
+  };
+
+  validate = async () => {
+    const url = (this.state.url || '').trim();
+    if (!url || !/youtu\.?be|youtube/i.test(url)) {
+      this.setState({ status: 'invalid' });
+      return;
+    }
+    this.setState({ status: 'validating' });
+    const quality = this.state.format === 'mp4' ? '1080p' : '320 kbps';
+    try {
+      const res = await fetch(this.api('/api/analyze'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, cookiesId: this.state.cookiesId || undefined }),
+      });
+      if (!res.ok) {
+        this.setState({ status: 'invalid' });
+        return;
+      }
+      const data = await res.json();
+      if (data.type === 'playlist') {
+        this.setState({
+          status: 'valid',
+          contentType: 'playlist',
+          playlist: { title: data.title, channel: data.channel, count: data.count },
+          items: (data.items || []).map((it) => ({ ...it, selected: true })),
+          quality,
+        });
+      } else {
+        this.setState({
+          status: 'valid',
+          contentType: 'video',
+          video: {
+            id: data.id,
+            title: data.title,
+            channel: data.channel,
+            duration: data.duration,
+            meta: data.meta,
+            thumbnail: data.thumbnail,
+          },
+          quality,
+        });
+      }
+    } catch (e) {
+      this.setState({ status: 'invalid' });
+    }
+  };
+
+  // Resolve an API path. When API_BASE is set (e.g. window.YUTUBO_API), requests go
+  // to the remote backend; otherwise they are same-origin (relative).
+  api = (path) => {
+    const base = (typeof window !== 'undefined' && window.YUTUBO_API) || this.props.apiBase || '';
+    return base ? base.replace(/\/$/, '') + path : path;
+  };
+
+  setFormat = (f) => {
+    this.setState({ format: f, quality: f === 'mp4' ? '1080p' : '320 kbps' });
+  };
+
+  pickQuality = (q) => this.setState({ quality: q });
+
+  toggleItem = (id) =>
+    this.setState((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, selected: !i.selected } : i)) }));
+
+  toggleAll = () =>
+    this.setState((s) => {
+      const all = s.items.length > 0 && s.items.every((i) => i.selected);
+      return { items: s.items.map((i) => ({ ...i, selected: !all })) };
+    });
+
+  startDownload = () => {
+    if (this.state.contentType === 'playlist' && this.state.items.filter((i) => i.selected).length === 0) return;
+
+    const downloadId = this._uuid();
+    this.setState({ downloading: true, progress: 0, done: false, downloadId });
+
+    // 1) Subscribe to progress via SSE before kicking off the download.
+    this._openProgress(downloadId);
+
+    // 2) Trigger the actual download via a hidden form POST so the browser streams
+    //    the file straight to disk (no in-memory blob for large videos).
+    this._postDownload(downloadId);
+  };
+
+  // Open an EventSource to the SSE progress endpoint and drive the progress bar.
+  _openProgress = (downloadId) => {
+    this._closeProgress();
+    try {
+      const es = new EventSource(this.api('/api/progress/' + downloadId));
+      this._es = es;
+      es.onmessage = (ev) => {
+        let data;
+        try { data = JSON.parse(ev.data); } catch (e) { return; }
+        if (typeof data.percent === 'number') {
+          this.setState({ progress: Math.min(100, data.percent) });
+        }
+        if (data.status === 'done') {
+          this._closeProgress();
+          this.setState({ progress: 100, downloading: false, done: true });
+        } else if (data.status === 'error') {
+          this._closeProgress();
+          this.setState({ downloading: false, done: false, status: 'invalid' });
+        }
+      };
+      es.onerror = () => {
+        // SSE drops when the stream ends; the form download itself still completes.
+        this._closeProgress();
+      };
+    } catch (e) {
+      // EventSource unavailable — download still works, just without live progress.
+    }
+  };
+
+  _closeProgress = () => {
+    if (this._es) {
+      this._es.close();
+      this._es = null;
+    }
+  };
+
+  // Submit a hidden form to POST /api/download. The browser handles the streamed
+  // attachment response as a native file download.
+  _postDownload = (downloadId) => {
+    const s = this.state;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = this.api('/api/download');
+    form.target = '_self';
+    form.style.display = 'none';
+    form.enctype = 'application/x-www-form-urlencoded';
+
+    const fields = {
+      url: (s.url || '').trim(),
+      format: s.format,
+      quality: s.quality,
+      downloadId,
+      cookiesId: s.cookiesId || '',
+    };
+    Object.keys(fields).forEach((k) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = k;
+      input.value = fields[k];
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => { try { document.body.removeChild(form); } catch (e) {} }, 1000);
+  };
+
+  _uuid = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+
+  reset = () => {
+    this._closeProgress();
+    clearTimeout(this._t);
+    this.setState({ url: '', status: 'idle', contentType: null, done: false, downloading: false, progress: 0, items: [], video: null, playlist: null });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const accent = this.props.accentColor ?? '#4F46E5';
+    const mp4 = s.format === 'mp4';
+    const fmtLabel = mp4 ? 'MP4' : 'MP3';
+
+    const chipBase = 'padding:8px 14px;border-radius:9px;font-size:14px;cursor:pointer;font-variant-numeric:tabular-nums;transition:all .12s;font-family:inherit;';
+    const qualityOptions = (mp4 ? this.MP4_Q : this.MP3_Q).map((q) => ({
+      label: q,
+      onClick: () => this.pickQuality(q),
+      style:
+        chipBase +
+        (q === s.quality
+          ? 'border:1px solid #0F172A;background:#0F172A;color:#fff'
+          : 'border:1px solid #E4E4E7;background:#fff;color:#3F3F46'),
+    }));
+
+    const items = s.items.map((it) => ({
+      ...it,
+      onToggle: () => this.toggleItem(it.id),
+      boxStyle:
+        'width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .12s;' +
+        (it.selected
+          ? 'background:' + accent + ';border:1px solid ' + accent + ';color:#fff'
+          : 'background:#fff;border:1px solid #D4D4D8;color:transparent'),
+    }));
+
+    const selectedCount = items.filter((i) => i.selected).length;
+    const allSelected = items.length > 0 && selectedCount === items.length;
+    const showPlaylist = s.status === 'valid' && s.contentType === 'playlist';
+    const showVideo = s.status === 'valid' && s.contentType === 'video';
+
+    const sizeMap = {
+      '2160p': '~640 MB', '1440p': '~310 MB', '1080p': '~165 MB', '720p': '~92 MB',
+      '480p': '~48 MB', '360p': '~26 MB',
+      '320 kbps': '~11 MB', '256 kbps': '~9 MB', '192 kbps': '~7 MB', '128 kbps': '~5 MB',
+    };
+
+    const summaryLine = showPlaylist
+      ? selectedCount + ' de ' + items.length + ' videos · ' + fmtLabel + ' · ' + s.quality
+      : fmtLabel + ' · ' + s.quality + ' · ' + (sizeMap[s.quality] || '');
+
+    const downloadDisabled = showPlaylist && selectedCount === 0;
+    const baseBtn = 'width:100%;display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border:none;border-radius:12px;font-size:15px;font-weight:600;transition:all .12s;font-family:inherit;';
+    const downloadBtnStyle =
+      baseBtn + (downloadDisabled ? 'background:#E4E4E7;color:#A1A1AA;cursor:not-allowed' : 'background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);color:#fff;cursor:pointer');
+
+    const segBase = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 0;border:none;border-radius:8px;cursor:pointer;transition:all .12s;font-family:inherit;';
+    const mp4Style = segBase + (mp4 ? 'background:#fff;color:#0F172A;box-shadow:0 1px 2px rgba(0,0,0,.08)' : 'background:transparent;color:#71717A');
+    const mp3Style = segBase + (!mp4 ? 'background:#fff;color:#0F172A;box-shadow:0 1px 2px rgba(0,0,0,.08)' : 'background:transparent;color:#71717A');
+
+    const selectAllBoxStyle =
+      'width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .12s;' +
+      (allSelected
+        ? 'background:' + accent + ';border:1px solid ' + accent + ';color:#fff'
+        : 'background:#fff;border:1px solid #D4D4D8;color:transparent');
+
+    const platforms = this.platformList.map((p) => ({
+      ...p,
+      onClick: () => this.selectPlatform(p),
+    }));
+
+    return {
+      accent,
+      showPlatforms: s.step === 'platform',
+      showDownload: s.step === 'download',
+      platforms,
+      selectedPlatform: s.selectedPlatform,
+      goBack: this.goBack,
+      url: s.url,
+      noop: this.noop,
+      onUrlInput: this.onUrlInput,
+      onKey: this.onKey,
+      onAnalyze: this.validate,
+      onPaste: this.pasteClip,
+      analyzeLabel: s.status === 'validating' ? 'Analizando…' : 'Analizar',
+      isInvalid: s.status === 'invalid',
+      showResult: s.status === 'valid',
+      showVideo,
+      showPlaylist,
+      video: s.video || { title: '', channel: '', duration: '', meta: '', thumbnail: '' },
+      playlist: s.playlist || { title: '', channel: '', count: 0 },
+      items,
+      selectedCount,
+      allSelected,
+      selectAllLabel: allSelected ? 'Quitar todos' : 'Seleccionar todos',
+      selectAllBoxStyle,
+      toggleAll: this.toggleAll,
+      qualityOptions,
+      mp4Style,
+      mp3Style,
+      setMp4: () => this.setFormat('mp4'),
+      setMp3: () => this.setFormat('mp3'),
+      summaryLine,
+      downloadBtnStyle,
+      downloadBtnLabel: showPlaylist ? 'Descargar (' + selectedCount + ')' : 'Descargar',
+      onDownload: this.startDownload,
+      downloading: s.downloading,
+      done: s.done,
+      showDownloadBtn: !s.downloading && !s.done,
+      progressStr: Math.round(s.progress) + '%',
+      onReset: this.reset,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+# Yutubo backend — systemd unit (Oracle Cloud)
+#
+# Install:
+#   sudo cp deploy/yutubo-backend.service /etc/systemd/system/yutubo-backend.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable yutubo-backend
+#   sudo systemctl start yutubo-backend
+#   sudo systemctl status yutubo-backend
+#
+# Logs: journalctl -u yutubo-backend -f
+#
+# Assumes the app is deployed to /opt/yutubo-backend (run `npm ci --omit=dev` there
+# first) and that yt-dlp, ffmpeg and deno are on the service user's PATH.
+
+[Unit]
+Description=Yutubo Backend API
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/yutubo-backend
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Environment
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# Ensure yt-dlp / ffmpeg / deno are found (Deno installs under the user's home).
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/home/ubuntu/.deno/bin:/home/ubuntu/.local/bin
+# Restrict CORS to your deployed frontend (comma-separated). '*' allows all.
+Environment=CORS_ORIGINS=*
+# Max simultaneous downloads (AC-7)
+Environment=MAX_CONCURRENT_DOWNLOADS=2
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
