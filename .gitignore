@@ -23,10 +23,19 @@ Thumbs.db
 .idea/
 *.swp
 
-# AIOX Local (AIOX)
-.aiox-core/local/
-.claude/settings.local.json
-.aiox/install-log.txt
+# AIOX Framework — never commit
+.aiox-core/
+.claude/
+.agent/
+.antigravity/
+.codex/
+.cursor/
+.gemini/
+.kimi/
+.aiox/
+uploads/
+.thumbnail
+.env.example
 
 # Yutubo Backend Runtime
 backend/tmp/
