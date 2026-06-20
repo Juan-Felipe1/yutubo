@@ -1,7 +1,8 @@
 # Yutubo — Opções de Deployment Gratuito
 
-> Pesquisa conduzida em 2026-06-19
+> Pesquisa conduzida em 2026-06-19 | Atualizado em 2026-06-20
 > Report completo: `DSN/docs/research/2026-06-19-free-hosting-yutubo/`
+> **UPDATE:** Oracle Cloud conta rejeitada → nova opção principal: HuggingFace Spaces
 
 ---
 
@@ -28,7 +29,48 @@
 
 ## Opções Reais e Gratuitas (2026)
 
-### Opção 1 — Oracle Cloud Always Free ⭐ MELHOR
+### Opção 0 — HuggingFace Spaces (Docker) ⭐ NOVA OPÇÃO PRINCIPAL (sem cartão)
+
+> Descoberto após Oracle Cloud rejeitar conta. Specs superiores ao Oracle atual.
+
+| Recurso | Valor |
+|---------|-------|
+| CPU | **2 vCPU** |
+| RAM | **16 GB** |
+| Storage | 50 GB (não persistente) |
+| Sleep | Após 48h de inatividade |
+| Timeout | Ilimitado |
+| Custo | $0, **sem cartão** |
+| Docker | ✅ Dockerfile completo (apt-get funciona) |
+| ffmpeg | ✅ Confirmado via apt-get |
+| yt-dlp | ✅ Instalável via pip |
+
+- URL: https://huggingface.co/spaces
+- Cria conta grátis em huggingface.co → New Space → Docker
+- Porta padrão: 7860 (definir `PORT=7860` no backend)
+- IP de datacenter → ainda requer cookies.txt para YouTube
+
+---
+
+### Opção 0b — Servidor Doméstico + Cloudflare Tunnel ⭐ (se tiver PC sempre ligado)
+
+| Recurso | Valor |
+|---------|-------|
+| CPU | Qualquer hardware que você tiver |
+| Sleep | NUNCA |
+| IP | **Residencial** ← Resolve bloqueio YouTube sem cookies.txt |
+| Custo | $0 |
+
+```bash
+# Setup em 3 passos
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+cloudflared tunnel login
+cloudflared tunnel create yutubo
+```
+
+---
+
+### Opção 1 — Oracle Cloud Always Free ⭐ MELHOR (se conseguir criar conta)
 
 **Para quê:** Backend completo do Yutubo (yt-dlp + ffmpeg + API)
 
@@ -120,24 +162,28 @@ Use --cookies-from-browser or --cookies for authentication.
 
 ---
 
-## Plataformas Descartadas
+## Plataformas Descartadas / Não Recomendadas
 
 | Plataforma | Motivo |
 |------------|--------|
+| Oracle Cloud | Free tier excelente, mas conta frequentemente rejeitada por fraud detection |
 | Fly.io | Free tier extinto em 2026 |
 | Railway | Apenas $5 de crédito (não é permanente) |
 | Heroku | Free tier extinto desde 2022 |
 | Netlify Functions | 10s timeout (mesma limitação do Vercel) |
+| Replit | Sleep após 5 min, só mantém acordado no plano pago |
+| Northflank | Free tier não é para produção (2 serviços max, CPU/RAM não especificados) |
 
 ---
 
 ## Próximos Passos
 
 1. Criar `Dockerfile` para o backend (Node.js + yt-dlp + ffmpeg + Deno)
-2. Escolher plataforma (Oracle Cloud ou Render para MVP)
+2. **Escolher plataforma → HuggingFace Spaces (sem cartão) ou Home Server (sem bloqueio YouTube)**
 3. Implementar suporte a cookies do usuário no backend e na UI
 4. Hospedar frontend no Vercel ou Cloudflare Pages
 5. Configurar CORS no backend para aceitar requests do domínio do frontend
+6. Criar Story 1.2 (deploy via Docker no HuggingFace Spaces) — Story 1.1 foi para Oracle Cloud VM
 
 ---
 
