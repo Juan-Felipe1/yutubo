@@ -71,7 +71,18 @@ input::placeholder{color:#A1A1AA}
       </div>
 
       <sc-if value="{{ isInvalid }}" hint-placeholder-val="{{ false }}">
-        <p style="margin-top:11px;font-size:13.5px;color:#DC2626;display:flex;align-items:center;gap:6px">{{ invalidMsg }}</p>
+        <div style="margin-top:11px;display:flex;flex-direction:column;gap:10px">
+          <p style="font-size:13.5px;color:#DC2626;display:flex;align-items:center;gap:6px">{{ invalidMsg }}</p>
+          <sc-if value="{{ showCookiesUpload }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #E4E4E7;border-radius:9px;padding:8px 14px;font-size:13.5px;font-weight:500;color:#3F3F46;cursor:pointer" style-hover="background:#FAFAFA;border-color:#D4D4D8">
+                <span style="font-size:15px">📎</span>{{ cookiesLabel }}
+                <input type="file" accept=".txt" onChange="{{ onCookiesFile }}" style="display:none" />
+              </label>
+              <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank" style="font-size:12.5px;color:#6366F1;text-decoration:none" style-hover="text-decoration:underline">¿Cómo obtener cookies.txt?</a>
+            </div>
+          </sc-if>
+        </div>
       </sc-if>
 
       <sc-if value="{{ showResult }}" hint-placeholder-val="{{ false }}">
@@ -195,6 +206,8 @@ class Component extends DCLogic {
     progress: 0,
     done: false,
     errMsg: null,
+    cookiesUploading: false,
+    cookiesUploaded: false,
   };
 
   MP4_Q = ['2160p', '1440p', '1080p', '720p', '480p', '360p'];
@@ -326,6 +339,24 @@ class Component extends DCLogic {
       }
     } catch (e) {
       this.setState({ status: 'invalid', errMsg: 'Error de conexión. Verifica tu conexión o intenta más tarde.' });
+    }
+  };
+
+  onCookiesFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    this.setState({ cookiesUploading: true });
+    try {
+      const form = new FormData();
+      form.append('cookies', file);
+      const res = await fetch(this.api('/api/cookies'), { method: 'POST', body: form });
+      if (!res.ok) throw new Error('upload failed');
+      const { cookiesId } = await res.json();
+      this.setState({ cookiesId, cookiesUploaded: true, cookiesUploading: false, status: 'idle', errMsg: null });
+      // Auto-retry analyze with the uploaded cookies
+      this.validate();
+    } catch (err) {
+      this.setState({ cookiesUploading: false, errMsg: 'Error al subir cookies.txt. Intenta de nuevo.' });
     }
   };
 
@@ -525,6 +556,9 @@ class Component extends DCLogic {
       analyzeLabel: s.status === 'validating' ? 'Analizando…' : 'Analizar',
       isInvalid: s.status === 'invalid',
       invalidMsg: s.errMsg || 'Ingresa un enlace válido de YouTube (video o playlist).',
+      showCookiesUpload: s.status === 'invalid' && (s.errMsg || '').includes('cookies'),
+      cookiesLabel: s.cookiesUploading ? 'Subiendo…' : s.cookiesUploaded ? '✓ Cookies cargadas' : 'Subir cookies.txt',
+      onCookiesFile: this.onCookiesFile,
       showResult: s.status === 'valid',
       showVideo,
       showPlaylist,
