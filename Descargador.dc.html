@@ -71,7 +71,7 @@ input::placeholder{color:#A1A1AA}
       </div>
 
       <sc-if value="{{ isInvalid }}" hint-placeholder-val="{{ false }}">
-        <p style="margin-top:11px;font-size:13.5px;color:#DC2626;display:flex;align-items:center;gap:6px">Ingresa un enlace válido de YouTube (video o playlist).</p>
+        <p style="margin-top:11px;font-size:13.5px;color:#DC2626;display:flex;align-items:center;gap:6px">{{ invalidMsg }}</p>
       </sc-if>
 
       <sc-if value="{{ showResult }}" hint-placeholder-val="{{ false }}">
@@ -194,6 +194,7 @@ class Component extends DCLogic {
     downloading: false,
     progress: 0,
     done: false,
+    errMsg: null,
   };
 
   MP4_Q = ['2160p', '1440p', '1080p', '720p', '480p', '360p'];
@@ -234,7 +235,7 @@ class Component extends DCLogic {
   goBack = () => {
     this._closeProgress();
     clearTimeout(this._t);
-    this.setState({ step: 'platform', url: '', status: 'idle', contentType: null, done: false, downloading: false, progress: 0, items: [], video: null, playlist: null });
+    this.setState({ step: 'platform', url: '', status: 'idle', contentType: null, done: false, downloading: false, progress: 0, items: [], video: null, playlist: null, errMsg: null });
   };
 
   onUrlInput = (e) => {
@@ -253,12 +254,25 @@ class Component extends DCLogic {
   };
 
   validate = async () => {
-    const url = (this.state.url || '').trim();
+    let url = (this.state.url || '').trim();
     if (!url || !/youtu\.?be|youtube/i.test(url)) {
-      this.setState({ status: 'invalid' });
+      this.setState({ status: 'invalid', errMsg: null });
       return;
     }
-    this.setState({ status: 'validating' });
+
+    // Strip YouTube Radio/Mix playlist params (list=RD*, list=RL*) when a video ID is
+    // present — the mix is algorithmic and the user wants the specific video, not a playlist.
+    try {
+      const u = new URL(url);
+      const list = u.searchParams.get('list') || '';
+      if (u.searchParams.has('v') && (list.startsWith('RD') || list.startsWith('RL'))) {
+        u.searchParams.delete('list');
+        u.searchParams.delete('start_radio');
+        url = u.toString();
+      }
+    } catch (_) {}
+
+    this.setState({ status: 'validating', errMsg: null });
     const quality = this.state.format === 'mp4' ? '1080p' : '320 kbps';
     try {
       const res = await fetch(this.api('/api/analyze'), {
@@ -267,7 +281,18 @@ class Component extends DCLogic {
         body: JSON.stringify({ url, cookiesId: this.state.cookiesId || undefined }),
       });
       if (!res.ok) {
-        this.setState({ status: 'invalid' });
+        let errMsg = 'No se pudo analizar. El video puede ser privado o no disponible.';
+        try {
+          const err = await res.json();
+          if (err.error === 'ip_blocked') {
+            errMsg = 'YouTube está bloqueando este servidor. Sube tu cookies.txt para continuar.';
+          } else if (err.error === 'analyze_timeout') {
+            errMsg = 'El análisis tardó demasiado. Intenta de nuevo.';
+          } else if (err.message) {
+            errMsg = err.message;
+          }
+        } catch (_) {}
+        this.setState({ status: 'invalid', errMsg });
         return;
       }
       const data = await res.json();
@@ -295,7 +320,7 @@ class Component extends DCLogic {
         });
       }
     } catch (e) {
-      this.setState({ status: 'invalid' });
+      this.setState({ status: 'invalid', errMsg: 'Error de conexión. Verifica tu conexión o intenta más tarde.' });
     }
   };
 
@@ -414,7 +439,7 @@ class Component extends DCLogic {
   reset = () => {
     this._closeProgress();
     clearTimeout(this._t);
-    this.setState({ url: '', status: 'idle', contentType: null, done: false, downloading: false, progress: 0, items: [], video: null, playlist: null });
+    this.setState({ url: '', status: 'idle', contentType: null, done: false, downloading: false, progress: 0, items: [], video: null, playlist: null, errMsg: null });
   };
 
   renderVals() {
@@ -494,6 +519,7 @@ class Component extends DCLogic {
       onPaste: this.pasteClip,
       analyzeLabel: s.status === 'validating' ? 'Analizando…' : 'Analizar',
       isInvalid: s.status === 'invalid',
+      invalidMsg: s.errMsg || 'Ingresa un enlace válido de YouTube (video o playlist).',
       showResult: s.status === 'valid',
       showVideo,
       showPlaylist,
