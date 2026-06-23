@@ -54,12 +54,15 @@ router.post('/analyze', async (req, res) => {
     }
     // yt-dlp typically writes the actionable message to stderr.
     const stderr = err.stderr || '';
-    const blocked = /Sign in to confirm|not a bot|cookies/i.test(stderr);
+    const blocked = /Sign in to confirm|not a bot|cookies|HTTP Error 429|Too Many Requests|Precondition check failed|PO Token|po_token|This video is not available in your country|blocked it|has blocked it/i.test(stderr);
+    const private_ = /Private video|This video is private|members only|unavailable/i.test(stderr);
     return res.status(400).json({
       error: blocked ? 'ip_blocked' : 'analyze_failed',
       message: blocked
-        ? 'YouTube is blocking this server. Upload your cookies.txt and try again.'
-        : 'Could not analyze this URL. It may be invalid, private, or unavailable.',
+        ? 'YouTube está bloqueando este servidor. Sube tu cookies.txt para continuar.'
+        : private_
+          ? 'Este video es privado o solo para miembros.'
+          : 'No se pudo analizar. El video puede ser privado o no disponible.',
       detail: config.nodeEnv === 'development' ? stderr.slice(0, 500) : undefined,
     });
   }

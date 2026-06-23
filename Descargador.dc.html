@@ -260,16 +260,21 @@ class Component extends DCLogic {
       return;
     }
 
-    // Strip YouTube Radio/Mix playlist params (list=RD*, list=RL*) when a video ID is
-    // present — the mix is algorithmic and the user wants the specific video, not a playlist.
+    // Normalize YouTube URLs: strip tracking/algorithmic params that confuse yt-dlp
+    // or cause the backend to treat a single-video request as a playlist.
     try {
       const u = new URL(url);
       const list = u.searchParams.get('list') || '';
+      // Strip Radio/Mix playlist (RD*, RL*) when a video ID is present
       if (u.searchParams.has('v') && (list.startsWith('RD') || list.startsWith('RL'))) {
         u.searchParams.delete('list');
         u.searchParams.delete('start_radio');
-        url = u.toString();
       }
+      // Strip YouTube sharing tracker (?si=...) — pure tracking, no functional value
+      u.searchParams.delete('si');
+      // Strip timestamp (?t=...) so analyze always gets clean video metadata
+      u.searchParams.delete('t');
+      url = u.toString();
     } catch (_) {}
 
     this.setState({ status: 'validating', errMsg: null });

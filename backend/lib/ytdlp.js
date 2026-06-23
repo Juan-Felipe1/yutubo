@@ -117,6 +117,8 @@ async function analyze(url, opts = {}) {
     '--dump-single-json',
     '--no-warnings',
     '--flat-playlist',
+    // Try Android/iOS clients first — they face less IP-based bot detection than the web player.
+    '--extractor-args', 'youtube:player_client=android,ios,web_creator,web',
     url,
   ];
   if (opts.cookiesPath) {
@@ -218,7 +220,11 @@ function normalizeFormatQuality(format, quality) {
 function buildDownloadArgs({ url, format, quality, cookiesPath }) {
   const { format: fmt, quality: q } = normalizeFormatQuality(format, quality);
 
-  const args = ['--no-warnings', '--no-playlist'];
+  const args = [
+    '--no-warnings',
+    '--no-playlist',
+    '--extractor-args', 'youtube:player_client=android,ios,web_creator,web',
+  ];
 
   if (cookiesPath) {
     args.push('--cookies', cookiesPath);
