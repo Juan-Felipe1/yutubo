@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "Descargador.dc.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "support.js",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/support.js", "dest": "/support.js" },
+    { "src": "/(.*)", "dest": "/Descargador.dc.html" }
+  ]
+}
