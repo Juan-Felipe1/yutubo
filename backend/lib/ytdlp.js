@@ -113,13 +113,27 @@ function pickThumbnail(info) {
  * @throws {Error} with .code='ANALYZE_FAILED' and .stderr on failure.
  */
 async function analyze(url, opts = {}) {
+  // --flat-playlist on single-video URLs causes "Requested format not available" in
+  // recent yt-dlp when combined with --impersonate (no formats in stub entry).
+  // Only add it for real playlist URLs.
+  let isPlaylistUrl = false;
+  try {
+    const u = new URL(url);
+    const list = u.searchParams.get('list') || '';
+    isPlaylistUrl =
+      u.pathname === '/playlist' ||
+      (list !== '' && !list.startsWith('RD') && !list.startsWith('RL'));
+  } catch (_) {}
+
   const args = [
     '--dump-single-json',
     '--no-warnings',
-    '--flat-playlist',
+    '--ignore-config',
     '--impersonate', 'chrome',
-    url,
   ];
+  if (isPlaylistUrl) args.push('--flat-playlist');
+  args.push(url);
+
   if (opts.cookiesPath) {
     args.unshift('--cookies', opts.cookiesPath);
   }
