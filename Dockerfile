@@ -38,6 +38,8 @@ ENV PORT=7860
 ENV NODE_ENV=production
 # bgutil plugin reads this URL to fetch PO tokens
 ENV BGUTIL_HTTP_API=http://localhost:4416
+# 90s: enough time for bgutil first-token generation on cold start
+ENV ANALYZE_TIMEOUT_MS=90000
 EXPOSE 7860
 
 CMD ["/start.sh"]
