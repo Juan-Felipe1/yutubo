@@ -129,6 +129,7 @@ async function analyze(url, opts = {}) {
     '--dump-single-json',
     '--no-warnings',
     '--ignore-config',
+    '--allow-unplayable-formats',
     '--impersonate', 'chrome',
     '--extractor-args', 'youtube:player_client=android,web',
   ];
