@@ -54,7 +54,7 @@ router.post('/analyze', async (req, res) => {
     }
     // yt-dlp typically writes the actionable message to stderr.
     const stderr = err.stderr || '';
-    const blocked = /Sign in to confirm|not a bot|cookies|HTTP Error 429|Too Many Requests|Precondition check failed|PO Token|po_token|This video is not available in your country|blocked it|has blocked it/i.test(stderr);
+    const blocked = /Sign in to confirm|not a bot|cookies|HTTP Error 429|Too Many Requests|Precondition check failed|PO Token|po_token|This video is not available in your country|blocked it|has blocked it|TLS\/SSL|SSL connection|connection has been closed|EOF.*ssl|ssl.*EOF/i.test(stderr);
     const private_ = /Private video|This video is private|members only|unavailable/i.test(stderr);
     return res.status(400).json({
       error: blocked ? 'ip_blocked' : 'analyze_failed',
