@@ -46,7 +46,7 @@ def main():
         'quiet': True,
         'no_warnings': True,
         'noprogress': True,
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'extractor_args': {'youtube': {'player_client': ['tv_embedded', 'ios', 'android_embedded', 'android', 'web']}},
     }
 
     # Set up Chrome TLS impersonation — needed to bypass YouTube's TLS fingerprint
@@ -79,6 +79,8 @@ def main():
         if YoutubeDLCookieJar is not None:
             jar = YoutubeDLCookieJar(cookies_path)
             jar.load(ignore_discard=True, ignore_expires=True)
+            cookie_count = sum(1 for _ in jar)
+            sys.stderr.write(f'DEBUG: loaded {cookie_count} cookies from jar\n')
             opts['cookiejar'] = jar
         else:
             opts['cookiefile'] = cookies_path  # fallback
