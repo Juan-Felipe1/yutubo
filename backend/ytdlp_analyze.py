@@ -21,7 +21,8 @@ def _try_inject_po_token(opts):
     Try to generate a YouTube PO token and inject it into yt-dlp opts.
     Gracefully no-ops if generate-pot.js is unavailable or fails.
     """
-    script = os.path.join(os.path.dirname(__file__), 'generate-pot.js')
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'generate-pot.js')
+    sys.stderr.write(f'DEBUG: pot script={script} exists={os.path.exists(script)}\n')
     if not os.path.exists(script):
         return
 
