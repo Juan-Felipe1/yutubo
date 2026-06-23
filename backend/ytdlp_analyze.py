@@ -5,11 +5,49 @@ yt-dlp metadata extractor using Python API.
 Key difference from CLI --dump-single-json:
   process=False skips format selection, so videos that need PO tokens for
   format URL access (common from datacenter IPs) still return metadata.
+  When generate-pot.js is available, a PO token is generated and passed to
+  yt-dlp to bypass datacenter-IP bot detection entirely.
 
 Usage: python3 ytdlp_analyze.py [--cookies /path] [--flat-playlist] URL
 """
 import json
+import os
+import subprocess
 import sys
+
+
+def _try_inject_po_token(opts):
+    """
+    Try to generate a YouTube PO token and inject it into yt-dlp opts.
+    Gracefully no-ops if generate-pot.js is unavailable or fails.
+    """
+    script = os.path.join(os.path.dirname(__file__), 'generate-pot.js')
+    if not os.path.exists(script):
+        return
+
+    try:
+        result = subprocess.run(
+            ['node', script],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode != 0:
+            sys.stderr.write(f'DEBUG: po-token generation failed: {result.stderr.strip()}\n')
+            return
+
+        data = json.loads(result.stdout.strip())
+        po_token = data.get('poToken')
+        visitor_data = data.get('visitorData')
+
+        if po_token and visitor_data:
+            ea = opts.setdefault('extractor_args', {}).setdefault('youtube', {})
+            # po_token format: 'client_type+token_value' — use 'web' client
+            ea['po_token'] = [f'web+{po_token}']
+            ea['visitor_data'] = [visitor_data]
+            sys.stderr.write(f'DEBUG: po-token injected (visitor={visitor_data[:8]}...)\n')
+    except Exception as exc:
+        sys.stderr.write(f'DEBUG: po-token error: {exc}\n')
 
 
 def main():
@@ -59,6 +97,11 @@ def main():
     except Exception:
         # Older yt-dlp or different structure — string form triggers internal conversion
         opts['impersonate'] = 'chrome'
+
+    # Generate a PO (Proof of Origin) token to bypass YouTube's datacenter-IP
+    # bot detection. Without a PO token, YouTube returns "Sign in to confirm
+    # you're not a bot" for some videos even with valid session cookies.
+    _try_inject_po_token(opts)
 
     if cookies_path:
         import os

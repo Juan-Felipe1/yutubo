@@ -9,9 +9,8 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# curl-cffi enables --impersonate: yt-dlp requests use real Chrome TLS fingerprint
-# bypassing YouTube's TLS-level blocking of datacenter IPs
-RUN pip3 install -U yt-dlp curl-cffi --break-system-packages
+# curl-cffi: TLS fingerprinting (Chrome), bgutil-ytdlp-pot-provider: PO tokens without user cookies
+RUN pip3 install -U yt-dlp curl-cffi bgutil-ytdlp-pot-provider --break-system-packages
 
 RUN curl -fsSL https://deno.land/install.sh | sh
 ENV DENO_INSTALL="/root/.deno"
@@ -24,6 +23,8 @@ RUN npm install --production
 ENV PORT=7860
 ENV NODE_ENV=production
 ENV ANALYZE_TIMEOUT_MS=90000
+# bgutil PO token server URL (set in docker-compose; standalone Dockerfile uses no-op fallback)
+ENV BGUTIL_HTTP_API=""
 EXPOSE 7860
 
 CMD ["node", "server.js"]
