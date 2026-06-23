@@ -16,9 +16,14 @@ API backend para download de vídeos e áudio do YouTube, Facebook, Instagram e 
 - `POST /api/analyze` — extrai metadata de uma URL (título, canal, duração, qualidades)
 - `POST /api/download` — inicia streaming de download (MP4 ou MP3)
 - `GET /api/progress/:id` — SSE de progresso do download
-- `POST /api/cookies` — upload de cookies.txt (mitigação bloqueio YouTube em datacenters)
+- `POST /api/cookies` — upload de cookies.txt (fallback para vídeos com restrição de idade)
 - `GET /api/health` — health check: `{ "status": "ok", "version": "1.0.0" }`
 
-## Nota sobre bloqueio do YouTube
+## Sobre o bloqueio do YouTube
 
-O YouTube bloqueia IPs de datacenters em 2026. Se downloads falharem com erro "Sign in to confirm you're not a bot", exporte seus cookies do browser com a extensão "Get cookies.txt locally" e faça upload via `POST /api/cookies`.
+Este backend usa o **bgutil PO token provider** para gerar tokens de autenticação automaticamente,
+sem precisar de cookies do usuário. O bgutil roda como serviço interno no mesmo container.
+
+Casos que ainda precisam de cookies.txt:
+- Vídeos com restrição de idade
+- Vídeos de membros (membership-only)
