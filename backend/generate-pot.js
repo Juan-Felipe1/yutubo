@@ -9,6 +9,17 @@
  */
 'use strict';
 
+// Patch https to log which host gets a TLS failure (datacenter IP diagnostic).
+const origTLS = require('tls').connect;
+require('tls').connect = function(...args) {
+  const sock = origTLS.apply(this, args);
+  const host = (args[0] && args[0].host) || 'unknown';
+  sock.once('error', (err) => {
+    process.stderr.write(`TLS_ERR host=${host} err=${err.message}\n`);
+  });
+  return sock;
+};
+
 const { generate } = require('youtube-po-token-generator');
 
 generate()
