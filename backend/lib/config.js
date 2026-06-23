@@ -33,6 +33,9 @@ const config = {
 
   // yt-dlp binary (overridable for environments where it is not on PATH)
   ytdlpBin: process.env.YTDLP_BIN || 'yt-dlp',
+  // Python wrapper for analyze — uses Python API with process=False to bypass
+  // format selection (avoids "Requested format not available" for PO-gated videos)
+  ytdlpAnalyzePy: process.env.YTDLP_ANALYZE_PY || require('path').join(__dirname, '..', 'ytdlp_analyze.py'),
 
   // Timeouts (ms)
   analyzeTimeoutMs: parseInt(process.env.ANALYZE_TIMEOUT_MS, 10) || 30000,

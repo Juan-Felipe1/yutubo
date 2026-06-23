@@ -113,9 +113,9 @@ function pickThumbnail(info) {
  * @throws {Error} with .code='ANALYZE_FAILED' and .stderr on failure.
  */
 async function analyze(url, opts = {}) {
-  // --flat-playlist on single-video URLs causes "Requested format not available" in
-  // recent yt-dlp when combined with --impersonate (no formats in stub entry).
-  // Only add it for real playlist URLs.
+  // Use Python wrapper that calls yt-dlp with process=False, bypassing
+  // format selection. This handles videos where YouTube withholds format URLs
+  // (PO token requirement from datacenter IPs) but metadata is accessible.
   let isPlaylistUrl = false;
   try {
     const u = new URL(url);
@@ -125,26 +125,16 @@ async function analyze(url, opts = {}) {
       (list !== '' && !list.startsWith('RD') && !list.startsWith('RL'));
   } catch (_) {}
 
-  const args = [
-    '--dump-single-json',
-    '--no-warnings',
-    '--ignore-config',
-    '--allow-unplayable-formats',
-    '--impersonate', 'chrome',
-    '--extractor-args', 'youtube:player_client=android,web',
-  ];
+  const args = [config.ytdlpAnalyzePy];
+  if (opts.cookiesPath) args.push('--cookies', opts.cookiesPath);
   if (isPlaylistUrl) args.push('--flat-playlist');
   args.push(url);
 
-  if (opts.cookiesPath) {
-    args.unshift('--cookies', opts.cookiesPath);
-  }
-
   let result;
   try {
-    result = await execa(config.ytdlpBin, args, {
+    result = await execa('python3', args, {
       timeout: config.analyzeTimeoutMs,
-      maxBuffer: 64 * 1024 * 1024, // 64 MB — large playlists produce big JSON
+      maxBuffer: 64 * 1024 * 1024,
     });
   } catch (err) {
     const e = new Error('yt-dlp analyze failed');
