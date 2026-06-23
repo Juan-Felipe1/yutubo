@@ -46,9 +46,21 @@ def main():
         'quiet': True,
         'no_warnings': True,
         'noprogress': True,
-        'impersonate': 'chrome',
         'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
     }
+
+    # Set up Chrome TLS impersonation — needed to bypass YouTube's TLS fingerprint
+    # blocking of datacenter IPs. Try ImpersonateTarget first (newer yt-dlp), fall
+    # back to string form which older versions also accept.
+    try:
+        from yt_dlp.utils import ImpersonateTarget
+        opts['impersonate'] = ImpersonateTarget('chrome', None, None, None)
+    except Exception:
+        try:
+            opts['impersonate'] = 'chrome'
+        except Exception:
+            pass  # no impersonation — may fail for restricted videos but won't crash
+
     if cookies_path:
         opts['cookiefile'] = cookies_path
     # Playlists: extract_flat=True returns stub entries (like --flat-playlist)
@@ -70,10 +82,11 @@ def main():
                 sys.exit(1)
             print(json.dumps(info))
     except Exception as e:
-        msg = str(e)
-        if not msg.startswith('ERROR:'):
-            msg = 'ERROR: ' + msg
-        sys.stderr.write(msg + '\n')
+        import traceback
+        tb = traceback.format_exc()
+        msg = str(e) or repr(e)
+        sys.stderr.write('ERROR: ' + msg + '\n')
+        sys.stderr.write(tb)
         sys.exit(1)
 
 
