@@ -130,6 +130,7 @@ async function analyze(url, opts = {}) {
     '--no-warnings',
     '--ignore-config',
     '--impersonate', 'chrome',
+    '--extractor-args', 'youtube:player_client=android,web',
   ];
   if (isPlaylistUrl) args.push('--flat-playlist');
   args.push(url);
