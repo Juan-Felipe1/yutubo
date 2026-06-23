@@ -50,16 +50,15 @@ def main():
     }
 
     # Set up Chrome TLS impersonation — needed to bypass YouTube's TLS fingerprint
-    # blocking of datacenter IPs. Try ImpersonateTarget first (newer yt-dlp), fall
-    # back to string form which older versions also accept.
+    # blocking of datacenter IPs.
+    # Import from yt_dlp.networking.impersonate (the exact module used internally)
+    # to avoid isinstance() mismatches that cause AssertionError in is_supported_target.
     try:
-        from yt_dlp.utils import ImpersonateTarget
-        opts['impersonate'] = ImpersonateTarget('chrome', None, None, None)
+        from yt_dlp.networking.impersonate import ImpersonateTarget as _IT
+        opts['impersonate'] = _IT(client='chrome')
     except Exception:
-        try:
-            opts['impersonate'] = 'chrome'
-        except Exception:
-            pass  # no impersonation — may fail for restricted videos but won't crash
+        # Older yt-dlp or different structure — string form triggers internal conversion
+        opts['impersonate'] = 'chrome'
 
     if cookies_path:
         opts['cookiefile'] = cookies_path
