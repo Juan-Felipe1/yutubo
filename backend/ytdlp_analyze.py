@@ -61,7 +61,28 @@ def main():
         opts['impersonate'] = 'chrome'
 
     if cookies_path:
-        opts['cookiefile'] = cookies_path
+        import os
+        if not os.path.exists(cookies_path):
+            sys.stderr.write(f'ERROR: Cookie file not found: {cookies_path}\n')
+            sys.exit(1)
+        # Use cookiejar (pre-loaded object) instead of cookiefile (file path).
+        # cookiefile in Python API can silently fail to load if os.access() check fails.
+        # Pre-loading and passing the jar object is more reliable.
+        try:
+            from yt_dlp.cookies import YoutubeDLCookieJar
+        except ImportError:
+            try:
+                from yt_dlp.utils import YoutubeDLCookieJar
+            except ImportError:
+                YoutubeDLCookieJar = None
+
+        if YoutubeDLCookieJar is not None:
+            jar = YoutubeDLCookieJar(cookies_path)
+            jar.load(ignore_discard=True, ignore_expires=True)
+            opts['cookiejar'] = jar
+        else:
+            opts['cookiefile'] = cookies_path  # fallback
+
     # Playlists: extract_flat=True returns stub entries (like --flat-playlist)
     # Single videos: process=False below avoids format selection
     if is_playlist:
