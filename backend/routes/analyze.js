@@ -63,7 +63,7 @@ router.post('/analyze', async (req, res) => {
         : private_
           ? 'Este video es privado o solo para miembros.'
           : 'No se pudo analizar. El video puede ser privado o no disponible.',
-      detail: config.nodeEnv === 'development' ? stderr.slice(0, 500) : undefined,
+      detail: stderr.slice(0, 800),
     });
   }
 });
