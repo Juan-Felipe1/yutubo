@@ -117,6 +117,7 @@ async function analyze(url, opts = {}) {
     '--dump-single-json',
     '--no-warnings',
     '--flat-playlist',
+    '--impersonate', 'chrome',
     url,
   ];
   if (opts.cookiesPath) {
@@ -218,7 +219,7 @@ function normalizeFormatQuality(format, quality) {
 function buildDownloadArgs({ url, format, quality, cookiesPath }) {
   const { format: fmt, quality: q } = normalizeFormatQuality(format, quality);
 
-  const args = ['--no-warnings', '--no-playlist'];
+  const args = ['--no-warnings', '--no-playlist', '--impersonate', 'chrome'];
 
   if (cookiesPath) {
     args.push('--cookies', cookiesPath);
