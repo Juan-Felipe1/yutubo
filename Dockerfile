@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
     unzip \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
 # yt-dlp + bgutil yt-dlp plugin
@@ -19,11 +18,9 @@ RUN curl -fsSL https://deno.land/install.sh | sh
 ENV DENO_INSTALL="/root/.deno"
 ENV PATH="$DENO_INSTALL/bin:$PATH"
 
-# bgutil PO token HTTP server (listens on port 4416)
-RUN git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /opt/bgutil && \
-    cd /opt/bgutil/server && \
-    npm install && \
-    npx tsc --skipLibCheck 2>&1 || echo "[bgutil] TypeScript compile done"
+# bgutil PO token HTTP server — copy pre-compiled files from official image
+# This avoids TypeScript compilation issues during build.
+COPY --from=ghcr.io/brainicism/bgutil-ytdlp-pot-provider:latest /app /opt/bgutil
 
 # Yutubo backend
 WORKDIR /app
