@@ -11,7 +11,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 
 const config = {
-  version: '1.0.0',
+  version: '1.1.0',
 
   // HTTP
   port: parseInt(process.env.PORT, 10) || 3000,

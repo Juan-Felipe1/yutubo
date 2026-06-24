@@ -5,6 +5,37 @@ All notable changes to Yutubo are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-23
+
+### Changed
+
+- **Frontend refactored to YouTube audio-only** — removed Facebook / Instagram / TikTok
+  platform selection; app now starts directly on the URL input. MP4 option removed;
+  always downloads as MP3. Accent color updated to YouTube red.
+- **`player_client` updated** — switched to `android_vr, web_embedded, ios, android, web`.
+  Removed broken `tv_embedded` (removed from yt-dlp upstream). `android_vr` and
+  `web_embedded` do not require PO tokens, improving coverage of datacenter-IP-blocked
+  videos.
+- **Analyze timeout** — increased default from 30 s to 60 s; PO token subprocess capped
+  at 8 s so it fails fast on datacenter IPs and leaves the full window for yt-dlp.
+
+### Fixed
+
+- **`ip_blocked` error message** now distinguishes whether cookies were already provided:
+  "verificação adicional..." when cookies are present vs "Sube tu cookies.txt" when not.
+- **Frontend error message** — no longer overrides `err.message` with a hardcoded
+  `ip_blocked` string; backend message is used directly so context-specific text shows.
+- **`detail` field in API error responses** — now dev-only (was always exposed in
+  production, leaking yt-dlp stderr).
+
+### Added
+
+- **`GET /api/version`** endpoint returns `{ version, name }` from `lib/config`.
+- **Version footer** — frontend fetches `/api/version` on mount and displays `vX.Y.Z`
+  below the copyright line.
+
+---
+
 ## [1.0.0] - 2026-06-23
 
 First stable release. A YouTube downloader with a Node.js/Express backend
