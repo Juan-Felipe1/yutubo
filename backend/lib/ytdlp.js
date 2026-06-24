@@ -225,7 +225,10 @@ function normalizeFormatQuality(format, quality) {
 function buildDownloadArgs({ url, format, quality, cookiesPath }) {
   const { format: fmt, quality: q } = normalizeFormatQuality(format, quality);
 
-  const args = ['--no-warnings', '--no-playlist', '--impersonate', 'chrome'];
+  const args = [
+    '--no-warnings', '--no-playlist', '--impersonate', 'chrome',
+    '--extractor-args', 'youtube:player_client=android_vr,web_embedded,ios,android,web',
+  ];
 
   if (cookiesPath) {
     args.push('--cookies', cookiesPath);
