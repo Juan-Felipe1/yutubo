@@ -32,7 +32,7 @@ def _try_inject_po_token(opts):
             ['node', script],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=8,
         )
         if result.returncode != 0:
             return

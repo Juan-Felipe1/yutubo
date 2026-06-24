@@ -38,7 +38,7 @@ const config = {
   ytdlpAnalyzePy: process.env.YTDLP_ANALYZE_PY || require('path').join(__dirname, '..', 'ytdlp_analyze.py'),
 
   // Timeouts (ms)
-  analyzeTimeoutMs: parseInt(process.env.ANALYZE_TIMEOUT_MS, 10) || 30000,
+  analyzeTimeoutMs: parseInt(process.env.ANALYZE_TIMEOUT_MS, 10) || 60000,
 
   // Download queue
   maxConcurrentDownloads:
