@@ -183,6 +183,9 @@ input::placeholder{color:#A1A1AA}
     </sc-if>
 
     <p style="text-align:center;font-size:12.5px;color:#B4B4BB;margin-top:20px;line-height:1.5">Usa el contenido respetando los derechos de autor y los términos de cada plataforma.</p>
+    <sc-if value="{{ backendVersion }}" hint-placeholder-val="{{ true }}">
+      <p style="text-align:center;font-size:11px;color:#D4D4D8;margin-top:6px">v{{ backendVersion }}</p>
+    </sc-if>
   </div>
 </main>
 </x-dc>
@@ -208,6 +211,7 @@ class Component extends DCLogic {
     errMsg: null,
     cookiesUploading: false,
     cookiesUploaded: false,
+    backendVersion: null,
   };
 
   MP4_Q = ['2160p', '1440p', '1080p', '720p', '480p', '360p'];
@@ -216,6 +220,10 @@ class Component extends DCLogic {
   componentDidMount() {
     const f = this.props.defaultFormat;
     if (f && f !== this.state.format) this.setFormat(f);
+    fetch(this.api('/api/version'))
+      .then((r) => r.json())
+      .then((d) => { if (d.version) this.setState({ backendVersion: d.version }); })
+      .catch(() => {});
   }
 
   componentWillUnmount() {
@@ -302,9 +310,7 @@ class Component extends DCLogic {
         let errMsg = 'No se pudo analizar. El video puede ser privado o no disponible.';
         try {
           const err = await res.json();
-          if (err.error === 'ip_blocked') {
-            errMsg = 'YouTube está bloqueando este servidor. Sube tu cookies.txt para continuar.';
-          } else if (err.error === 'analyze_timeout') {
+          if (err.error === 'analyze_timeout') {
             errMsg = 'El análisis tardó demasiado. Intenta de nuevo.';
           } else if (err.message) {
             errMsg = err.message;
@@ -584,6 +590,7 @@ class Component extends DCLogic {
       showDownloadBtn: !s.downloading && !s.done,
       progressStr: Math.round(s.progress) + '%',
       onReset: this.reset,
+      backendVersion: s.backendVersion,
     };
   }
 }
