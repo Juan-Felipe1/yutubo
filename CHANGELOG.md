@@ -5,6 +5,27 @@ All notable changes to Yutubo are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-24
+
+### Added
+
+- **bgutil Script Mode** — builds `bgutil-ytdlp-pot-provider` 1.3.1 server at
+  `~/bgutil-ytdlp-pot-provider` in the Docker image so yt-dlp can generate YouTube
+  PO tokens via Node.js subprocess without a separate HTTP server. BotGuard runs
+  against Google APIs (`jnn-pa.googleapis.com`), not `www.youtube.com`, bypassing
+  the Node.js TLS block that broke `generate-pot.js`.
+
+### Changed
+
+- **`player_client` list expanded** — added `android_testsuite`, `mweb`, and
+  `web_creator` before existing clients. YouTube patched the `android_vr` bypass;
+  new clients are tried first, and the `web` client (last in list) uses bgutil for
+  PO tokens when all others fail.
+- **`BGUTIL_HTTP_API` env var removed** from Dockerfile — no longer needed since
+  Script Mode is now available.
+
+---
+
 ## [1.1.0] - 2026-06-23
 
 ### Changed
