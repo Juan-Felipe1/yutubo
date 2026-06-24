@@ -41,3 +41,11 @@ uploads/
 backend/tmp/
 backend/cookies/
 backend/node_modules/
+
+# Sensitive Data (never commit)
+cookies.txt
+cookies/*.txt
+docker-compose.local.yaml
+docker-compose.override.yaml
+.env.local
+.env.*.local
