@@ -227,7 +227,7 @@ function buildDownloadArgs({ url, format, quality, cookiesPath }) {
 
   const args = [
     '--no-warnings', '--no-playlist', '--impersonate', 'chrome',
-    '--extractor-args', 'youtube:player_client=android_vr,web_embedded,ios,android,web',
+    '--extractor-args', 'youtube:player_client=android_testsuite,mweb,web_creator,android_vr,web_embedded,ios,android,web',
   ];
 
   if (cookiesPath) {

@@ -84,7 +84,7 @@ def main():
         'quiet': True,
         'no_warnings': True,
         'noprogress': True,
-        'extractor_args': {'youtube': {'player_client': ['android_vr', 'web_embedded', 'ios', 'android', 'web']}},
+        'extractor_args': {'youtube': {'player_client': ['android_testsuite', 'mweb', 'web_creator', 'android_vr', 'web_embedded', 'ios', 'android', 'web']}},
     }
 
     # Set up Chrome TLS impersonation — needed to bypass YouTube's TLS fingerprint
