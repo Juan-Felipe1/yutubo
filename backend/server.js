@@ -8,6 +8,7 @@
  *   POST /api/download       — streamed media download (mp4/mp3)
  *   GET  /api/progress/:id   — Server-Sent Events progress feed
  *   POST /api/cookies        — upload cookies.txt (multipart)
+ *   GET  /api/version        — backend semantic version + name
  *   GET  /api/health         — health check
  *
  * Backed by yt-dlp (subprocess via execa). Downloads are streamed straight to the
@@ -24,6 +25,7 @@ const analyze = require('./routes/analyze');
 const download = require('./routes/download');
 const progress = require('./routes/progress');
 const cookies = require('./routes/cookies');
+const version = require('./routes/version');
 
 const app = express();
 
@@ -52,6 +54,7 @@ app.use('/api', analyze.router);
 app.use('/api', download.router);
 app.use('/api', progress.router);
 app.use('/api', cookies.router);
+app.use('/api', version.router);
 
 // 404 for unknown API routes
 app.use('/api', (_req, res) => {
