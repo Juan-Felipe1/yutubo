@@ -49,7 +49,7 @@ Isso cria a pasta `hf-clone/` (já listada no .gitignore do repo, não versionar
 ## Passo 3 — Copiar os arquivos para o clone
 
 ```bash
-# Dockerfile na raiz do Space
+# Dockerfile na raiz do Space (inclui bgutil-ytdlp-pot-provider)
 cp Dockerfile hf-clone/
 
 # README com os metadados YAML obrigatórios do HuggingFace
@@ -63,14 +63,18 @@ Estrutura esperada dentro de `hf-clone/`:
 
 ```
 hf-clone/
-├── Dockerfile
-├── README.md      ← com bloco YAML (sdk: docker, title, emoji, ...)
+├── Dockerfile          ← Node.js + yt-dlp + ffmpeg + Deno + bgutil
+├── README.md           ← com bloco YAML (sdk: docker, title, emoji, ...)
 └── backend/
     ├── server.js
     ├── package.json
     ├── lib/
     └── routes/
 ```
+
+> **Nota bgutil:** O `Dockerfile` instala `bgutil-ytdlp-pot-provider` (gera PO Tokens automaticamente).
+> Em HuggingFace Spaces Docker, um único container roda — o bgutil opera em processo interno.
+> O `docker-compose.yaml` (para uso local) usa dois containers separados; no Space usa-se só o Dockerfile.
 
 > Não copie `backend/node_modules` nem `backend/tmp` / `backend/cookies` —
 > o `npm install --production` roda dentro do build. O `.gitignore` do backend
@@ -117,9 +121,11 @@ curl -X POST https://juan-felipe1-yutubo-backend.hf.space/api/analyze \
 # Esperado: JSON com title, channel, duration, qualities
 ```
 
-> Se o analyze retornar "Sign in to confirm you're not a bot", o IP do datacenter
-> HuggingFace foi bloqueado pelo YouTube. Mitigação: exportar `cookies.txt` do browser
-> (extensão "Get cookies.txt locally") e enviar via `POST /api/cookies`.
+> Se o analyze retornar "Sign in to confirm you're not a bot":
+> O bgutil gera PO tokens automaticamente — normalmente resolve sem nenhuma ação.
+> Se persistir, o IP HuggingFace pode estar bloqueado por reputação.
+> Fallback: exportar `cookies.txt` do browser (extensão "Get cookies.txt locally")
+> e enviar via `POST /api/cookies`.
 
 ---
 
@@ -131,8 +137,7 @@ Default é `*` (qualquer origem) — em produção, restringir ao domínio do fr
 1. No Space: **Settings → Variables and secrets**.
 2. Adicionar uma **Variable** (não secret, valor não sensível):
    - Name: `CORS_ORIGINS`
-   - Value: URL do frontend Vercel, ex: `https://yutubo.vercel.app`
-     (múltiplas origens separadas por vírgula, sem espaços extras).
+   - Value: `https://yutubo.vercel.app`
 3. Opcional: `NODE_ENV=production` (já definido como fallback no Dockerfile).
 4. Reiniciar o Space para aplicar: **Settings → Factory reboot**
    (ou um push vazio: `git commit --allow-empty -m "chore: reboot" && git push`).

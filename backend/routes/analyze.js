@@ -54,16 +54,22 @@ router.post('/analyze', async (req, res) => {
     }
     // yt-dlp typically writes the actionable message to stderr.
     const stderr = err.stderr || '';
-    const blocked = /Sign in to confirm|not a bot|cookies|HTTP Error 429|Too Many Requests|Precondition check failed|PO Token|po_token|This video is not available in your country|blocked it|has blocked it|TLS\/SSL|SSL connection|connection has been closed|EOF.*ssl|ssl.*EOF/i.test(stderr);
+    const blocked = /Sign in to confirm|not a bot|HTTP Error 429|Too Many Requests|Precondition check failed|PO Token|po_token|This video is not available in your country|blocked it|has blocked it|TLS\/SSL|SSL connection|connection has been closed|EOF.*ssl|ssl.*EOF/i.test(stderr);
     const private_ = /Private video|This video is private|members only|unavailable/i.test(stderr);
+    let message;
+    if (blocked) {
+      message = cookiesPath
+        ? 'Este video requer verificação adicional que não é possível desde servidores em nuvem.'
+        : 'YouTube está bloqueando este servidor. Sube tu cookies.txt para continuar.';
+    } else if (private_) {
+      message = 'Este video es privado o solo para miembros.';
+    } else {
+      message = 'No se pudo analizar. El video puede ser privado o no disponible.';
+    }
     return res.status(400).json({
       error: blocked ? 'ip_blocked' : 'analyze_failed',
-      message: blocked
-        ? 'YouTube está bloqueando este servidor. Sube tu cookies.txt para continuar.'
-        : private_
-          ? 'Este video es privado o solo para miembros.'
-          : 'No se pudo analizar. El video puede ser privado o no disponible.',
-      detail: stderr.slice(0, 800),
+      message,
+      detail: config.nodeEnv === 'development' ? stderr.slice(0, 500) : undefined,
     });
   }
 });

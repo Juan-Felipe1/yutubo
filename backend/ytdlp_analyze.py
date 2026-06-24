@@ -20,9 +20,10 @@ def _try_inject_po_token(opts):
     """
     Try to generate a YouTube PO token and inject it into yt-dlp opts.
     Gracefully no-ops if generate-pot.js is unavailable or fails.
+    On datacenter IPs (e.g. HuggingFace), Node.js TLS may be blocked by YouTube,
+    causing this to fail silently without affecting the rest of the analysis.
     """
     script = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'generate-pot.js')
-    sys.stderr.write(f'DEBUG: pot script={script} exists={os.path.exists(script)}\n')
     if not os.path.exists(script):
         return
 
@@ -34,7 +35,6 @@ def _try_inject_po_token(opts):
             timeout=30,
         )
         if result.returncode != 0:
-            sys.stderr.write(f'DEBUG: po-token generation failed: {result.stderr.strip()}\n')
             return
 
         data = json.loads(result.stdout.strip())
@@ -46,9 +46,8 @@ def _try_inject_po_token(opts):
             # po_token format: 'client_type+token_value' — use 'web' client
             ea['po_token'] = [f'web+{po_token}']
             ea['visitor_data'] = [visitor_data]
-            sys.stderr.write(f'DEBUG: po-token injected (visitor={visitor_data[:8]}...)\n')
-    except Exception as exc:
-        sys.stderr.write(f'DEBUG: po-token error: {exc}\n')
+    except Exception:
+        pass
 
 
 def main():
@@ -123,8 +122,6 @@ def main():
         if YoutubeDLCookieJar is not None:
             jar = YoutubeDLCookieJar(cookies_path)
             jar.load(ignore_discard=True, ignore_expires=True)
-            cookie_count = sum(1 for _ in jar)
-            sys.stderr.write(f'DEBUG: loaded {cookie_count} cookies from jar\n')
             opts['cookiejar'] = jar
         else:
             opts['cookiefile'] = cookies_path  # fallback
